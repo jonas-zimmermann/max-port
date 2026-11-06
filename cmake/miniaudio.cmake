@@ -43,13 +43,31 @@ set(CMAKE_BUILD_TYPE Release)
 FetchContent_MakeAvailable(MINIAUDIO)
 
 if(MAX_IOS)
-    # Only the implementation includes AVFoundation and uses @autoreleasepool /
-    # AVAudioSession. Header consumers remain C/C++; do not change them globally.
-    # Source properties must be set in the directory that owns this target.
+    # FetchContent must have created the real target before resolving its sources.
     get_target_property(miniaudio_source_dir miniaudio SOURCE_DIR)
-    set_source_files_properties("${miniaudio_source_dir}/miniaudio.c"
+    get_target_property(miniaudio_sources miniaudio SOURCES)
+    set(miniaudio_implementation "")
+    foreach(source IN LISTS miniaudio_sources)
+        cmake_path(ABSOLUTE_PATH source BASE_DIRECTORY "${miniaudio_source_dir}"
+            NORMALIZE OUTPUT_VARIABLE absolute_source)
+        if(absolute_source STREQUAL "${miniaudio_source_dir}/miniaudio.c")
+            set(miniaudio_implementation "${absolute_source}")
+        endif()
+    endforeach()
+    if(NOT miniaudio_implementation)
+        message(FATAL_ERROR "Cannot find miniaudio.c in the fetched miniaudio target")
+    endif()
+    # LANGUAGE alone did not make Xcode emit an Objective-C invocation. Set the
+    # explicit PBX file type and per-file compiler mode in the owning directory.
+    # Header consumers and all non-iOS builds retain their original languages.
+    set_source_files_properties("${miniaudio_implementation}"
         DIRECTORY "${miniaudio_source_dir}"
-        PROPERTIES LANGUAGE OBJC)
+        PROPERTIES LANGUAGE OBJC XCODE_EXPLICIT_FILE_TYPE "sourcecode.c.objc")
+    # The library target contains this one implementation unit. PRIVATE target
+    # options reach its real compile command even if an Xcode/CMake version
+    # infers C from the .c extension. They never propagate to header consumers.
+    target_compile_options(miniaudio PRIVATE "SHELL:-x objective-c")
+    message(STATUS "iOS miniaudio implementation: ${miniaudio_implementation} (-x objective-c)")
     target_link_libraries(miniaudio PRIVATE
         "-framework AVFoundation" "-framework AudioToolbox" "-framework CoreFoundation")
 endif()

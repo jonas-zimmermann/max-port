@@ -105,3 +105,21 @@ verify the shell on a device, add sandbox resource paths and explicit user data
 import, then integrate game startup and touch controls. Existing computer AI is
 preserved but is not yet demonstrated running on an iPhone. App icons, store
 privacy review and distribution packaging are later work.
+
+### Follow-up: verify the actual miniaudio compiler mode
+
+The first LANGUAGE-only correction did not take effect in the Xcode invocation:
+the supplied log still showed miniaudio.c with `clang -x c`. After FetchContent
+creates the target, the build now resolves its real implementation source from
+the target SOURCES/SOURCE_DIR properties, sets the explicit Xcode Objective-C
+file type, and supplies private `-x objective-c` options on the miniaudio target.
+The private options cannot affect game code or consumers of miniaudio headers;
+all changes are conditional on iOS. Linux keeps C compilation.
+
+CI now retains the build output in ios-build.log during the build step and runs
+cmake/scripts/check-ios-miniaudio.py even on build failure. That check inspects
+actual clang command lines, rejects a final C/C++ mode or missing invocation,
+and emits a Checks annotation confirming Objective-C only after finding it.
+Compiler errors are also exposed as annotations. The original compiler exit
+status is preserved. This makes diagnostics accessible through the GitHub API
+when the separate full-log download host is unavailable.
