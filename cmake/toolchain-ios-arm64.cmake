@@ -1,6 +1,7 @@
 set(CMAKE_SYSTEM_NAME iOS)
 set(CMAKE_OSX_SYSROOT iphoneos CACHE STRING "iPhone device SDK")
 set(CMAKE_OSX_ARCHITECTURES arm64 CACHE STRING "Device architecture")
-set(CMAKE_OSX_DEPLOYMENT_TARGET 15.0 CACHE STRING "Minimum iOS version")
+# The existing C++20 std::format implementation requires iOS 16.3 libc++ APIs.
+set(CMAKE_OSX_DEPLOYMENT_TARGET 16.3 CACHE STRING "Minimum iOS version")
 set(CMAKE_XCODE_ATTRIBUTE_CODE_SIGNING_ALLOWED NO CACHE STRING "Unsigned CI build")
 set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)

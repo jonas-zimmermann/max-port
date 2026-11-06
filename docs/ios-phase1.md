@@ -8,7 +8,7 @@ The iOS entry point currently displays a small SDL3 status screen. It does
 ## Build on a Mac
 
 Requirements: Xcode with its iPhone SDK, its command-line tools selected, and
-CMake 3.28 or newer. The target is a real iPhone ARM64 binary, minimum iOS 15.
+CMake 3.28 or newer. The target is a real iPhone ARM64 binary, minimum iOS 16.3.
 From the checkout on `ios-port`:
 
 ```sh
@@ -123,3 +123,13 @@ and emits a Checks annotation confirming Objective-C only after finding it.
 Compiler errors are also exposed as annotations. The original compiler exit
 status is preserved. This makes diagnostics accessible through the GitHub API
 when the separate full-log download host is unavailable.
+
+### Confirmed Xcode result for 66965be
+
+Run 42303670491 verified the actual miniaudio.c clang invocation with
+`-x objective-c`. The original Foundation language-mode failure is corrected.
+The build then failed in libc++ formatter_floating_point.h with
+`error: 'to_chars' is unavailable: introduced in iOS 16.3`. The existing engine
+uses std::format in multiple modules. The device deployment target is therefore
+raised from iOS 15 to iOS 16.3; no format code, game rules or AI are changed.
+Supporting iOS 15 would require a separate compatible formatting strategy.

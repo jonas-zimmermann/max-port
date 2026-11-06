@@ -12,6 +12,9 @@ endif()
 
 if(CMAKE_SYSTEM_NAME STREQUAL "iOS")
     set(MAX_IOS ON)
+    if(CMAKE_OSX_DEPLOYMENT_TARGET VERSION_LESS 16.3)
+        message(FATAL_ERROR "The existing std::format code requires iOS >= 16.3; update CMAKE_OSX_DEPLOYMENT_TARGET or use a fresh build directory")
+    endif()
     # miniaudio uses Objective-C AVAudioSession APIs on iPhone.
     enable_language(OBJC)
     set(CMAKE_C_STANDARD 17)
