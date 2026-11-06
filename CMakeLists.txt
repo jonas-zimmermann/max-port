@@ -12,6 +12,8 @@ endif()
 
 if(CMAKE_SYSTEM_NAME STREQUAL "iOS")
     set(MAX_IOS ON)
+    # miniaudio uses Objective-C AVAudioSession APIs on iPhone.
+    enable_language(OBJC)
     set(CMAKE_C_STANDARD 17)
     set(CMAKE_CXX_STANDARD 20)
     set(CMAKE_CXX_STANDARD_REQUIRED ON)

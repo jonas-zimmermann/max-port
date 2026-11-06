@@ -1,5 +1,4 @@
 # SDL3 supplies the UIKit entry point through SDL_main.h.
-enable_language(OBJC)
 set_target_properties(max PROPERTIES
     MACOSX_BUNDLE TRUE
     MACOSX_BUNDLE_INFO_PLIST "${PROJECT_SOURCE_DIR}/platform/ios/Info.plist.in"

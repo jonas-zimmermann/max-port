@@ -42,6 +42,18 @@ set(CMAKE_BUILD_TYPE Release)
 
 FetchContent_MakeAvailable(MINIAUDIO)
 
+if(MAX_IOS)
+    # Only the implementation includes AVFoundation and uses @autoreleasepool /
+    # AVAudioSession. Header consumers remain C/C++; do not change them globally.
+    # Source properties must be set in the directory that owns this target.
+    get_target_property(miniaudio_source_dir miniaudio SOURCE_DIR)
+    set_source_files_properties("${miniaudio_source_dir}/miniaudio.c"
+        DIRECTORY "${miniaudio_source_dir}"
+        PROPERTIES LANGUAGE OBJC)
+    target_link_libraries(miniaudio PRIVATE
+        "-framework AVFoundation" "-framework AudioToolbox" "-framework CoreFoundation")
+endif()
+
 # Restore build configuration
 set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE_BACKUP})
 

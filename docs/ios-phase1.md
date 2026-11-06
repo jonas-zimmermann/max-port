@@ -78,6 +78,15 @@ before the engine can be launched on the phone.
 
 ## Validation and remaining work
 
+The first Xcode 16.4 / iPhoneOS 18.5 attempt reached compilation but exited
+with code 65 and Objective-C declarations (`@class` / `@protocol`) being parsed
+as C. The miniaudio implementation includes AVFoundation on iOS, so its
+`miniaudio.c` is now explicitly compiled as Objective-C in the dependency's own
+CMake directory. Objective-C is enabled before dependency configuration; normal
+header consumers and Linux keep their original languages. The dependency also
+declares its required Apple frameworks explicitly. Xcode validation of this
+correction is pending; the earlier host checks do not prove an iOS build.
+
 Validation in the Linux cloud task after these changes: native Debug configure
 and build succeeded; all 48 existing unit tests passed (0 failed). The two iOS
 C++ files passed host syntax checks against SDL3 headers. Preset JSON, landscape
