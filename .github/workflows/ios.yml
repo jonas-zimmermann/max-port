@@ -35,12 +35,19 @@ jobs:
           exit "$verification_status"
       - name: Check bundle and ARM64 binary
         run: |
-          test -d build/ios-arm64/Debug-iphoneos/max-port.app
-          plutil -lint build/ios-arm64/Debug-iphoneos/max-port.app/Info.plist
-          xcrun lipo -verify_arch arm64 build/ios-arm64/Debug-iphoneos/max-port.app/max-port
-          /usr/libexec/PlistBuddy -c 'Print :UISupportedInterfaceOrientations' build/ios-arm64/Debug-iphoneos/max-port.app/Info.plist
+          bundle_path=$(cat build/ios-arm64/ios-bundle-Debug.txt)
+          executable_path=$(cat build/ios-arm64/ios-executable-Debug.txt)
+          echo "CMake app bundle: $bundle_path"
+          echo "CMake executable: $executable_path"
+          test -d "$bundle_path"
+          test -f "$executable_path"
+          plutil -lint "$bundle_path/Info.plist"
+          xcrun lipo -verify_arch arm64 "$executable_path"
+          /usr/libexec/PlistBuddy -c 'Print :UISupportedInterfaceOrientations' "$bundle_path/Info.plist"
       - name: Package development bundle
-        run: ditto -c -k --keepParent build/ios-arm64/Debug-iphoneos/max-port.app build/ios-arm64/max-port-ios-arm64-unsigned.zip
+        run: |
+          bundle_path=$(cat build/ios-arm64/ios-bundle-Debug.txt)
+          ditto -c -k --keepParent "$bundle_path" build/ios-arm64/max-port-ios-arm64-unsigned.zip
       - name: Upload unsigned development bundle
         uses: actions/upload-artifact@v4
         with:

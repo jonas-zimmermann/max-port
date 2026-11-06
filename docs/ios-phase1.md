@@ -16,7 +16,8 @@ cmake --preset ios-arm64
 cmake --build --preset ios-arm64 --parallel 3
 ```
 
-The output is `build/ios-arm64/Debug-iphoneos/max-port.app`. It is deliberately
+CMake writes the actual app bundle path to `build/ios-arm64/ios-bundle-Debug.txt`
+and the binary path to `ios-executable-Debug.txt`. The app is deliberately
 unsigned. This verifies compilation/linking without a certificate or paid
 Apple developer membership. It cannot be installed directly on an iPhone.
 For a device run, open the generated Xcode project on a Mac and select your own
@@ -133,3 +134,12 @@ The build then failed in libc++ formatter_floating_point.h with
 uses std::format in multiple modules. The device deployment target is therefore
 raised from iOS 15 to iOS 16.3; no format code, game rules or AI are changed.
 Supporting iOS 15 would require a separate compatible formatting strategy.
+
+### First successful Xcode compile/link
+
+Run 42305343022 (0f28234) passed the real unsigned iPhone app build and the
+miniaudio Objective-C invocation check. Its subsequent bundle check failed
+with exit code 1: CI had assumed a Debug-iphoneos output directory. CMake now
+exports the actual bundle/executable paths through generator expressions;
+validation and packaging consume those paths. Full pipeline verification of
+this packaging correction is pending. No physical iPhone test was performed.

@@ -18,3 +18,10 @@ foreach(resource IN LISTS ios_resources)
     set_source_files_properties("${path}" PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
 endforeach()
 target_link_libraries(max PRIVATE "-framework AudioToolbox" "-framework AVFoundation" "-framework CoreAudio")
+
+# Xcode/CMake may use Debug/ rather than Debug-iphoneos/. Export the actual
+# generator-resolved product paths instead of guessing them in CI.
+file(GENERATE OUTPUT "${CMAKE_BINARY_DIR}/ios-bundle-$<CONFIG>.txt"
+    CONTENT "$<TARGET_BUNDLE_DIR:max>\n")
+file(GENERATE OUTPUT "${CMAKE_BINARY_DIR}/ios-executable-$<CONFIG>.txt"
+    CONTENT "$<TARGET_FILE:max>\n")
