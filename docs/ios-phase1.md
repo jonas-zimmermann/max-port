@@ -34,7 +34,10 @@ Linux defaults are preserved.
 ## GitHub Actions: instructions for the repository owner
 
 Nothing has been pushed and no GitHub workflow has been started by the assistant.
-The workflow file is `.github/workflows/ios.yml`, using `macos-15` and Xcode.
+The workflow file is `.github/workflows/ios.yml`, using the standard `macos-15-intel` runner and Xcode 16.4 (iOS 18.5 SDK).
+The Intel host cross-compiles for `iphoneos` ARM64; the app is not an Intel
+binary or a simulator build. This label uses a different runner pool from
+`macos-15`, but runner availability and shorter queue times are not guaranteed.
 No paid service, signing secret or deployment is configured.
 
 When you explicitly decide to upload the changes:
