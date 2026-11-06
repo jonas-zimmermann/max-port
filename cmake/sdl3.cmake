@@ -27,6 +27,11 @@ FetchContent_Declare(
 # carry the macro there as well. Harmless once CMake is fixed.
 list(APPEND CMAKE_REQUIRED_DEFINITIONS -D_GNU_SOURCE=1)
 
+if(MAX_IOS)
+    set(SDL_SHARED OFF)
+    set(SDL_STATIC ON)
+endif()
+
 set(SDL_HAPTIC OFF)
 set(SDL_HIDAPI OFF)
 set(SDL_JOYSTICK OFF)

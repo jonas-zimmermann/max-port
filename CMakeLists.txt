@@ -10,8 +10,21 @@ if(NOT DEFINED BUILD_SHARED_LIBS)
 	set(BUILD_SHARED_LIBS OFF)
 endif()
 
-option(MAX_BUILD_TESTS "Build unit tests by default" ON)
-option(MAX_ENABLE_UPNP "Use miniupnpc library" ON)
+if(CMAKE_SYSTEM_NAME STREQUAL "iOS")
+    set(MAX_IOS ON)
+    set(CMAKE_C_STANDARD 17)
+    set(CMAKE_CXX_STANDARD 20)
+    set(CMAKE_CXX_STANDARD_REQUIRED ON)
+    set(CMAKE_CXX_EXTENSIONS OFF)
+    set(MAX_TESTS_DEFAULT OFF)
+    set(MAX_UPNP_DEFAULT OFF)
+else()
+    set(MAX_TESTS_DEFAULT ON)
+    set(MAX_UPNP_DEFAULT ON)
+endif()
+
+option(MAX_BUILD_TESTS "Build unit tests by default" ${MAX_TESTS_DEFAULT})
+option(MAX_ENABLE_UPNP "Use miniupnpc library" ${MAX_UPNP_DEFAULT})
 
 if(WIN32)
 	set(MAX_SPLIT_DEBUG_SYMBOLS_DEFAULT ON)
@@ -22,6 +35,10 @@ endif()
 option(MAX_SPLIT_DEBUG_SYMBOLS
 	"Split debug info into a sidecar, strip the executable and package the sidecar separately"
 	${MAX_SPLIT_DEBUG_SYMBOLS_DEFAULT})
+
+if(MAX_IOS AND (BUILD_SHARED_LIBS OR MAX_BUILD_TESTS OR MAX_SPLIT_DEBUG_SYMBOLS))
+    message(FATAL_ERROR "iOS requires static dependencies, host-only tests disabled and no GNU symbol splitting")
+endif()
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
@@ -41,6 +58,12 @@ set(GAME_SOURCES "")
 
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/src")
 
+if(MAX_IOS)
+    list(REMOVE_ITEM GAME_SOURCES
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/crash_reporter.cpp")
+    list(APPEND GAME_SOURCES platform/ios/main.cpp platform/ios/crash_reporter.cpp)
+endif()
 add_executable(${PROJECT_NAME} ${GAME_SOURCES})
 
 set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "max-port")
@@ -69,16 +92,18 @@ if(MAX_ENABLE_UPNP)
 endif()
 
 if(NOT BUILD_SHARED_LIBS)
-	set(${PROJECT_NAME}_deps SDL3::SDL3-static utf8proc Miniaudio::Miniaudio Sha2::Sha2 nlohmann_json::nlohmann_json nlohmann_json_schema_validator::validator lua::static Xoshiro::Xoshiro Enet::Enet Freetype::Freetype Libbacktrace::Libbacktrace)
+	set(${PROJECT_NAME}_deps SDL3::SDL3-static utf8proc Miniaudio::Miniaudio Sha2::Sha2 nlohmann_json::nlohmann_json nlohmann_json_schema_validator::validator lua::static Xoshiro::Xoshiro Enet::Enet Freetype::Freetype)
 
 	if(MAX_ENABLE_UPNP)
 		list(APPEND ${PROJECT_NAME}_deps miniupnpc::miniupnpc)
 	endif()
 
-	target_link_options(${PROJECT_NAME} PUBLIC -static -static-libgcc -static-libstdc++)
+	if(NOT APPLE)
+		target_link_options(${PROJECT_NAME} PUBLIC -static -static-libgcc -static-libstdc++)
+	endif()
 	target_link_libraries(${PROJECT_NAME} PRIVATE ${${PROJECT_NAME}_deps})
 else()
-	set(${PROJECT_NAME}_deps SDL3::SDL3-shared utf8proc Miniaudio::Miniaudio Sha2::Sha2 nlohmann_json::nlohmann_json nlohmann_json_schema_validator::validator lua::shared Xoshiro::Xoshiro Enet::Enet Freetype::Freetype Libbacktrace::Libbacktrace)
+	set(${PROJECT_NAME}_deps SDL3::SDL3-shared utf8proc Miniaudio::Miniaudio Sha2::Sha2 nlohmann_json::nlohmann_json nlohmann_json_schema_validator::validator lua::shared Xoshiro::Xoshiro Enet::Enet Freetype::Freetype)
 
 	if(MAX_ENABLE_UPNP)
 		list(APPEND ${PROJECT_NAME}_deps miniupnpc::miniupnpc)
@@ -100,7 +125,11 @@ if(MINGW)
 endif()
 
 include(sdl3)
-include(libbacktrace)
+if(NOT MAX_IOS)
+    include(libbacktrace)
+    list(APPEND ${PROJECT_NAME}_deps Libbacktrace::Libbacktrace)
+    target_link_libraries(${PROJECT_NAME} PRIVATE Libbacktrace::Libbacktrace)
+endif()
 include(utf8proc)
 include(freetype)
 include(miniaudio)
@@ -115,6 +144,12 @@ include(enet)
 
 if(MAX_ENABLE_UPNP)
 	include(miniupnp)
+endif()
+
+if(MAX_IOS)
+    include(ios)
+    # No desktop install paths, Linux RPATH or CPack for an iPhone app bundle.
+    return()
 endif()
 
 if(MAX_SPLIT_DEBUG_SYMBOLS)

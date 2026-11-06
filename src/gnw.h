@@ -25,7 +25,7 @@
 #include <assert.h>
 #include <limits.h>
 
-#ifdef __unix__
+#ifdef __linux__
 #include <linux/limits.h>
 #endif
 
