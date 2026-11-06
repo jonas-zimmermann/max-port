@@ -1,4 +1,8 @@
 # SDL3 supplies the UIKit entry point through SDL_main.h.
+# This preset builds only iphoneos, in its own directory. Avoid unresolved
+# $(EFFECTIVE_PLATFORM_NAME) in TARGET_BUNDLE_DIR / TARGET_FILE exports.
+# A future simulator preset must use a separate binary directory.
+set_property(GLOBAL PROPERTY XCODE_EMIT_EFFECTIVE_PLATFORM_NAME OFF)
 set_target_properties(max PROPERTIES
     MACOSX_BUNDLE TRUE
     MACOSX_BUNDLE_INFO_PLIST "${PROJECT_SOURCE_DIR}/platform/ios/Info.plist.in"

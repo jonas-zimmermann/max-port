@@ -143,3 +143,10 @@ with exit code 1: CI had assumed a Debug-iphoneos output directory. CMake now
 exports the actual bundle/executable paths through generator expressions;
 validation and packaging consume those paths. Full pipeline verification of
 this packaging correction is pending. No physical iPhone test was performed.
+
+The device-only preset also disables XCODE_EMIT_EFFECTIVE_PLATFORM_NAME.
+CMake documents that the default embedded-SDK behavior otherwise leaks
+$(EFFECTIVE_PLATFORM_NAME) into TARGET_FILE-related generator expressions.
+Disabling it is appropriate here because this build directory is dedicated to
+iphoneos; a future simulator build must use its own directory. Exported product
+paths are consequently concrete rather than containing an Xcode placeholder.

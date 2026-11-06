@@ -37,8 +37,8 @@ jobs:
         run: |
           bundle_path=$(cat build/ios-arm64/ios-bundle-Debug.txt)
           executable_path=$(cat build/ios-arm64/ios-executable-Debug.txt)
-          echo "CMake app bundle: $bundle_path"
-          echo "CMake executable: $executable_path"
+          echo "::notice title=iOS bundle path::$bundle_path"
+          echo "::notice title=iOS executable path::$executable_path"
           test -d "$bundle_path"
           test -f "$executable_path"
           plutil -lint "$bundle_path/Info.plist"
