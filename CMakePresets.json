@@ -446,6 +446,19 @@
                 "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchain-cross-mingw-w64-i686.cmake",
                 "CMAKE_BUILD_TYPE": "MinSizeRel"
             }
+        },
+        {
+            "name": "ios-arm64",
+            "displayName": "iPhone ARM64 (Xcode, unsigned)",
+            "generator": "Xcode",
+            "binaryDir": "${sourceDir}/build/ios-arm64",
+            "cacheVariables": {
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchain-ios-arm64.cmake",
+                "BUILD_SHARED_LIBS": "OFF",
+                "MAX_BUILD_TESTS": "OFF",
+                "MAX_ENABLE_UPNP": "OFF",
+                "MAX_SPLIT_DEBUG_SYMBOLS": "OFF"
+            }
         }
     ],
     "buildPresets": [
@@ -694,6 +707,14 @@
             "inherits": "base-build",
             "configurePreset": "cross-windowsxp-x86-minsizerel",
             "description": "Build Cross Windows XP x86 MinSizeRel"
+        },
+        {
+            "name": "ios-arm64",
+            "configurePreset": "ios-arm64",
+            "configuration": "Debug",
+            "targets": [
+                "max"
+            ]
         }
     ],
     "testPresets": [

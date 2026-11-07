@@ -1,0 +1,57 @@
+name: iOS ARM64 foundation
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [master, ios-port]
+permissions:
+  contents: read
+jobs:
+  iphone:
+    # Free standard Intel runner; Xcode cross-compiles the iPhone ARM64 target.
+    runs-on: macos-15-intel
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_16.4.app/Contents/Developer
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check Xcode and CMake
+        run: |
+          uname -m
+          xcodebuild -version
+          xcrun --sdk iphoneos --show-sdk-version
+          cmake --version
+      - name: Configure native device build
+        run: cmake --preset ios-arm64
+      - name: Build unsigned iPhone app
+        shell: bash
+        run: |
+          set +e
+          set -o pipefail
+          cmake --build --preset ios-arm64 --parallel 3 2>&1 | tee ios-build.log
+          build_status=${PIPESTATUS[0]}
+          python3 cmake/scripts/check-ios-miniaudio.py ios-build.log
+          verification_status=$?
+          if [ "$build_status" -ne 0 ]; then exit "$build_status"; fi
+          exit "$verification_status"
+      - name: Check bundle and ARM64 binary
+        run: |
+          bundle_path=$(cat build/ios-arm64/ios-bundle-Debug.txt)
+          executable_path=$(cat build/ios-arm64/ios-executable-Debug.txt)
+          echo "::notice title=iOS bundle path::$bundle_path"
+          echo "::notice title=iOS executable path::$executable_path"
+          test -d "$bundle_path"
+          test -f "$executable_path"
+          plutil -lint "$bundle_path/Info.plist"
+          xcrun lipo "$executable_path" -verify_arch arm64
+          /usr/libexec/PlistBuddy -c 'Print :UISupportedInterfaceOrientations' "$bundle_path/Info.plist"
+      - name: Package development bundle
+        run: |
+          bundle_path=$(cat build/ios-arm64/ios-bundle-Debug.txt)
+          ditto -c -k --keepParent "$bundle_path" build/ios-arm64/max-port-ios-arm64-unsigned.zip
+      - name: Upload unsigned development bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: max-port-ios-arm64-unsigned
+          path: build/ios-arm64/max-port-ios-arm64-unsigned.zip
+          if-no-files-found: error
+          retention-days: 7
