@@ -42,7 +42,7 @@ jobs:
           test -d "$bundle_path"
           test -f "$executable_path"
           plutil -lint "$bundle_path/Info.plist"
-          xcrun lipo -verify_arch arm64 "$executable_path"
+          xcrun lipo "$executable_path" -verify_arch arm64
           /usr/libexec/PlistBuddy -c 'Print :UISupportedInterfaceOrientations' "$bundle_path/Info.plist"
       - name: Package development bundle
         run: |
